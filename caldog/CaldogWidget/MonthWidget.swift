@@ -32,16 +32,14 @@ enum AccentOption: String, AppEnum {
     }
 }
 
-/// 정보 밀도(테마/밀도 옵션, SPEC §5). 보통은 여유 있게, 촘촘은 레인을 더 늘리고 라인 높이를
-/// 줄여 더 많은 일정을 빽빽하게 보여준다.
+/// 정보 밀도(테마/밀도 옵션, SPEC §5). 보통은 여유 있게, 촘촘은 라인 높이를 줄여 같은
+/// 공간에 더 많은 레인이 들어가게 한다(레인 수는 뷰가 가용 높이에서 역산).
 enum DensityOption: String, AppEnum {
     case comfortable, compact
     static var typeDisplayRepresentation: TypeDisplayRepresentation { "정보 밀도" }
     static var caseDisplayRepresentations: [DensityOption: DisplayRepresentation] {
         [.comfortable: "보통", .compact: "촘촘"]
     }
-    /// 패밀리별 기본 레인 수에 더하는 값(촘촘일수록 레인을 늘려 더 많은 일정을 표시).
-    var laneBonus: Int { self == .compact ? 1 : 0 }
 }
 
 // MARK: - 표시 캘린더 선택 (AppEntity picker, SPEC §5)

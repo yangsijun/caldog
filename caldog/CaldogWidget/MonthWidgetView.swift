@@ -16,21 +16,27 @@ struct MonthWidgetView: View {
     private var showsNavigation: Bool { family != .systemSmall }
     /// 큰/특대 위젯만 연속 바를 그린다(나머지는 점).
     private var showsBars: Bool { family == .systemLarge || family == .systemExtraLarge }
-    private var maxLanes: Int {
-        let base = family == .systemExtraLarge ? 3 : 2
-        return base + entry.density.laneBonus
-    }
 
     // 바 레이아웃 메트릭
     private var numberArea: CGFloat { family == .systemExtraLarge ? 20 : 18 }
-    /// 촘촘 모드는 레인을 한 줄 더 넣는 대신 라인 높이를 줄여 같은 공간에 더 많은 일정을 담는다.
-    private var laneHeight: CGFloat {
+    /// 선호 레인 높이. 촘촘 모드는 라인 높이를 줄여 같은 공간에 더 많은 레인을 담는다.
+    private var preferredLaneHeight: CGFloat {
         let base: CGFloat = family == .systemExtraLarge ? 14 : 11
         return entry.density == .compact ? base - 3 : base
     }
     private let overflowStrip: CGFloat = 8
-    private var barRowHeight: CGFloat { numberArea + CGFloat(maxLanes) * laneHeight + overflowStrip }
     private let hInset: CGFloat = 1
+
+    /// 행 높이에 들어가는 레인 수/높이를 역산한다. 고정 레인 수로 행 높이를 누적하면 위젯의
+    /// 실제 캔버스 높이(특히 iPad는 iPhone보다 낮음)를 초과해 하단 주가 잘리므로,
+    /// 가용 높이가 기준이 되어야 한다. 선호 높이의 80%까지 압축을 허용해 레인 수를 확보한다.
+    private func laneLayout(rowHeight: CGFloat) -> (count: Int, height: CGFloat) {
+        let available = rowHeight - numberArea - overflowStrip
+        let minLane = preferredLaneHeight * 0.8
+        guard available >= minLane else { return (1, max(available, 8)) }
+        let count = max(1, Int(available / minLane))
+        return (count, min(preferredLaneHeight, available / CGFloat(count)))
+    }
 
     var body: some View {
         VStack(spacing: family == .systemSmall ? 3 : 5) {
@@ -100,10 +106,20 @@ struct MonthWidgetView: View {
     @ViewBuilder
     private var grid: some View {
         if showsBars {
-            VStack(spacing: 2) {
-                ForEach(entry.grid.weeks, id: \.first?.id) { barWeekRow($0) }
+            // 바 모드(large/특대): 남은 높이를 주 수로 나눠 행 높이를 정하고, 그 안에 들어가는
+            // 레인 수를 역산한다. 고정 높이 누적으로 iPad에서 하단 주가 잘리던 문제를 방지.
+            GeometryReader { geo in
+                let weeks = entry.grid.weeks
+                let spacing: CGFloat = 2
+                let rowH = (geo.size.height - spacing * CGFloat(max(weeks.count - 1, 0)))
+                    / CGFloat(max(weeks.count, 1))
+                let lanes = laneLayout(rowHeight: rowH)
+                VStack(spacing: spacing) {
+                    ForEach(weeks, id: \.first?.id) {
+                        barWeekRow($0, rowHeight: rowH, maxLanes: lanes.count, laneHeight: lanes.height)
+                    }
+                }
             }
-            .frame(maxHeight: .infinity)
         } else {
             // 점 모드(small/medium): 남은 높이를 주 수로 나눠 행 높이를 정하고 내부 크기를
             // 비례 조정한다. 고정 크기 누적으로 하단 주가 잘리던 문제를 방지.
@@ -121,7 +137,8 @@ struct MonthWidgetView: View {
 
     // MARK: - 연속 바 (Large/특대)
 
-    private func barWeekRow(_ week: [MonthGrid.Day]) -> some View {
+    private func barWeekRow(_ week: [MonthGrid.Day], rowHeight: CGFloat,
+                            maxLanes: Int, laneHeight: CGFloat) -> some View {
         let dates = week.map(\.date)
         let segments = MonthBarLayout.segments(forWeek: dates, bars: entry.bars, calendar: calendar)
         let overflow = MonthBarLayout.overflowCounts(forWeek: dates, bars: entry.bars,
@@ -133,7 +150,7 @@ struct MonthWidgetView: View {
                     ForEach(week) { day in
                         Link(destination: deepLink(for: day.date)) {
                             numberLabel(day)
-                                .frame(width: colW, height: barRowHeight, alignment: .top)
+                                .frame(width: colW, height: rowHeight, alignment: .top)
                                 .contentShape(Rectangle())
                         }
                     }
@@ -155,7 +172,7 @@ struct MonthWidgetView: View {
                 }
             }
         }
-        .frame(height: barRowHeight)
+        .frame(height: rowHeight)
     }
 
     private func numberLabel(_ day: MonthGrid.Day) -> some View {
