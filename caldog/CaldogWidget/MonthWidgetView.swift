@@ -5,6 +5,7 @@ import CaldogKit
 
 struct MonthWidgetView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
     let entry: MonthEntry
 
     private var accent: Color { Color(widgetHex: entry.accentHex) }
@@ -96,17 +97,26 @@ struct MonthWidgetView: View {
 
     // MARK: - Grid
 
+    @ViewBuilder
     private var grid: some View {
-        VStack(spacing: 2) {
-            ForEach(entry.grid.weeks, id: \.first?.id) { week in
-                if showsBars {
-                    barWeekRow(week)
-                } else {
-                    dotWeekRow(week)
+        if showsBars {
+            VStack(spacing: 2) {
+                ForEach(entry.grid.weeks, id: \.first?.id) { barWeekRow($0) }
+            }
+            .frame(maxHeight: .infinity)
+        } else {
+            // 점 모드(small/medium): 남은 높이를 주 수로 나눠 행 높이를 정하고 내부 크기를
+            // 비례 조정한다. 고정 크기 누적으로 하단 주가 잘리던 문제를 방지.
+            GeometryReader { geo in
+                let weeks = entry.grid.weeks
+                let rowH = geo.size.height / CGFloat(max(weeks.count, 1))
+                VStack(spacing: 0) {
+                    ForEach(weeks, id: \.first?.id) { week in
+                        dotWeekRow(week, rowHeight: rowH)
+                    }
                 }
             }
         }
-        .frame(maxHeight: .infinity)
     }
 
     // MARK: - 연속 바 (Large/특대)
@@ -162,19 +172,21 @@ struct MonthWidgetView: View {
     }
 
     private func barView(_ segment: MonthBarLayout.WeekSegment) -> some View {
-        let color = Color(widgetHex: segment.bar.colorHex)
+        // 캘린더 색에 따라 대비를 보장하는 텍스트/배경색(가독성).
+        let palette = ColorHex.barColors(from: segment.bar.colorHex, dark: colorScheme == .dark)
         let showTitle = segment.isStart || segment.startColumn == 0
         let leading: CGFloat = segment.isStart ? 3 : 0
         let trailing: CGFloat = segment.isEnd ? 3 : 0
         return Text(showTitle ? segment.bar.title : " ")
-            .font(.system(size: family == .systemExtraLarge ? 9 : 8))
+            .font(.system(size: family == .systemExtraLarge ? 9 : 8, weight: .medium))
             .lineLimit(1)
             .truncationMode(.tail)
             .padding(.horizontal, 3)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .foregroundStyle(color)
+            .foregroundStyle(Color(red: palette.text.red, green: palette.text.green, blue: palette.text.blue))
             .background(
-                color.opacity(0.22),
+                // 반투명 틴트 알약(회색·옅은 색 일정도 배경이 보이도록). 텍스트만 대비색 사용.
+                Color(widgetHex: segment.bar.colorHex).opacity(0.22),
                 in: UnevenRoundedRectangle(
                     topLeadingRadius: leading, bottomLeadingRadius: leading,
                     bottomTrailingRadius: trailing, topTrailingRadius: trailing
@@ -184,35 +196,37 @@ struct MonthWidgetView: View {
 
     // MARK: - 점 (small/medium)
 
-    private func dotWeekRow(_ week: [MonthGrid.Day]) -> some View {
+    private func dotWeekRow(_ week: [MonthGrid.Day], rowHeight: CGFloat) -> some View {
         HStack(spacing: 1) {
             ForEach(week) { day in
-                dotCell(day)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                dotCell(day, rowHeight: rowHeight)
             }
         }
-        .frame(maxHeight: .infinity)
+        .frame(height: rowHeight)
     }
 
     @ViewBuilder
-    private func dotCell(_ day: MonthGrid.Day) -> some View {
+    private func dotCell(_ day: MonthGrid.Day, rowHeight: CGFloat) -> some View {
         if family == .systemSmall {
-            dotCellContent(day)
+            dotCellContent(day, rowHeight: rowHeight)
         } else {
-            Link(destination: deepLink(for: day.date)) { dotCellContent(day) }
+            Link(destination: deepLink(for: day.date)) { dotCellContent(day, rowHeight: rowHeight) }
         }
     }
 
-    private func dotCellContent(_ day: MonthGrid.Day) -> some View {
+    /// 행 높이에 맞춰 날짜 원과 점 영역을 비례 조정한다(6주가 항상 들어맞게).
+    private func dotCellContent(_ day: MonthGrid.Day, rowHeight: CGFloat) -> some View {
         let dayBars = bars(on: day.date)
-        return VStack(spacing: 2) {
+        let dotArea: CGFloat = 5
+        let spacing: CGFloat = 1
+        let circle = max(11, min(rowHeight - dotArea - spacing, family == .systemSmall ? 18 : 20))
+        return VStack(spacing: spacing) {
             Text("\(calendar.component(.day, from: day.date))")
-                .font(.system(size: family == .systemSmall ? 9 : 11,
-                              weight: day.isToday ? .bold : .regular))
+                .font(.system(size: circle * 0.62, weight: day.isToday ? .bold : .regular))
                 .foregroundStyle(day.isToday ? .white : .primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .frame(width: family == .systemSmall ? 16 : 19, height: family == .systemSmall ? 16 : 19)
+                .frame(width: circle, height: circle)
                 .background(Circle().fill(day.isToday ? accent : .clear))
             HStack(spacing: 2) {
                 ForEach(Array(dayBars.prefix(3).enumerated()), id: \.offset) { _, bar in
@@ -221,8 +235,7 @@ struct MonthWidgetView: View {
                         .frame(width: 3.5, height: 3.5)
                 }
             }
-            .frame(height: 4)
-            Spacer(minLength: 0)
+            .frame(height: dotArea)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .opacity(day.isInMonth ? 1 : 0.3)

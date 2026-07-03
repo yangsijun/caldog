@@ -215,7 +215,8 @@ struct MonthWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: Self.kind, intent: MonthWidgetConfig.self, provider: MonthTimelineProvider()) { entry in
             MonthWidgetView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                // 시스템 배경(라이트=흰색)으로 깨끗하게. .fill.tertiary는 회색빛이라 옅은 일정 틴트가 뭉개짐.
+                .containerBackground(.background, for: .widget)
         }
         .configurationDisplayName("월 캘린더")
         .description("이번 달 일정을 한눈에 봅니다.")

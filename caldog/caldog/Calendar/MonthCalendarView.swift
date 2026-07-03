@@ -136,23 +136,26 @@ private struct WeekRow: View {
 }
 
 private struct BarView: View {
+    @Environment(\.colorScheme) private var scheme
     let segment: MonthBarLayout.WeekSegment
 
-    private var color: Color { Color(hex: segment.bar.colorHex) }
     private var showTitle: Bool { segment.isStart || segment.startColumn == 0 }
     private var leadingRadius: CGFloat { segment.isStart ? 4 : 0 }
     private var trailingRadius: CGFloat { segment.isEnd ? 4 : 0 }
 
     var body: some View {
+        // 캘린더 색에 따라 대비를 보장하는 텍스트/배경색(가독성).
+        let palette = ColorHex.barColors(from: segment.bar.colorHex, dark: scheme == .dark)
         Text(showTitle ? segment.bar.title : " ")
-            .font(.system(size: 9))
+            .font(.system(size: 9, weight: .medium))
             .lineLimit(1)
             .truncationMode(.tail)
             .padding(.horizontal, 4)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .foregroundStyle(color)
+            .foregroundStyle(Color(red: palette.text.red, green: palette.text.green, blue: palette.text.blue))
             .background(
-                color.opacity(0.22),
+                // 반투명 틴트 알약(회색·옅은 색 일정도 배경이 보이도록). 텍스트만 대비색 사용.
+                Color(hex: segment.bar.colorHex).opacity(0.22),
                 in: UnevenRoundedRectangle(
                     topLeadingRadius: leadingRadius,
                     bottomLeadingRadius: leadingRadius,
