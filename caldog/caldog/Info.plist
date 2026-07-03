@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>일정을 위젯과 앱에서 확인하기 위해 캘린더 접근이 필요합니다. (편집은 애플 캘린더에서 이루어집니다.)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>dev.sijun.caldog</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>caldog</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

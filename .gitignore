@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Xcode user-specific state
+xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# OMC orchestration state (local only)
+.omc/
+**/.omc/
+
+# Build artifacts
+DerivedData/
+build/
