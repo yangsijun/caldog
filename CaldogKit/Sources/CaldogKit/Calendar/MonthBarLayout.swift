@@ -62,13 +62,15 @@ public enum MonthBarLayout {
             occurrences.append(Occurrence(event: event, first: first, last: last, key: "\(event.id)#\(index)"))
         }
 
-        // 시작일 오름차순 → 더 긴 일정 먼저 → 종일 먼저 → 제목(안정성).
+        // 시작일 오름차순 → 더 긴 일정 먼저 → 종일 먼저 → 시작 시각 → 제목(안정성).
+        // 시작 시각이 제목보다 먼저여야 같은 날 일정이 시간 순서대로 레인에 쌓인다.
         occurrences.sort { a, b in
             if a.first != b.first { return a.first < b.first }
             let aSpan = a.last.timeIntervalSince(a.first)
             let bSpan = b.last.timeIntervalSince(b.first)
             if aSpan != bSpan { return aSpan > bSpan }
             if a.event.isAllDay != b.event.isAllDay { return a.event.isAllDay && !b.event.isAllDay }
+            if a.event.start != b.event.start { return a.event.start < b.event.start }
             return a.event.title < b.event.title
         }
 

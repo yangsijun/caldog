@@ -74,6 +74,18 @@ struct MonthBarLayoutTests {
         #expect(seg2[0].isEnd == true)
     }
 
+    @Test("같은 날 일정은 제목이 아니라 시작 시각 순으로 레인 배치")
+    func sameDayOrderedByStartTime() {
+        let grid = gridInterval(day(2026, 7, 1), day(2026, 8, 9))
+        // 제목 역순(Z가 이른 시각)으로 넣어 제목 정렬이면 실패하게 한다.
+        let bars = MonthBarLayout.assignLanes(
+            events: [event("A늦은일정", day(2026, 7, 2, 15), day(2026, 7, 2, 16)),
+                     event("Z이른일정", day(2026, 7, 2, 9), day(2026, 7, 2, 10))],
+            calendar: calendar, gridInterval: grid)
+        #expect(bars.first(where: { $0.eventID == "Z이른일정" })?.lane == 0)
+        #expect(bars.first(where: { $0.eventID == "A늦은일정" })?.lane == 1)
+    }
+
     @Test("maxLanes 초과 일정은 overflow로 집계")
     func overflowCounting() {
         let grid = gridInterval(day(2026, 7, 1), day(2026, 8, 9))
