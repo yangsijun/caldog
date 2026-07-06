@@ -5,6 +5,8 @@
 
 import SwiftUI
 import SwiftData
+import EventKit
+import WidgetKit
 import CaldogKit
 
 struct ContentView: View {
@@ -40,7 +42,15 @@ struct ContentView: View {
             if phase == .active {
                 store?.refreshAuthorization()
                 store?.reload()
+                // 위젯 타임라인은 자정에만 갱신되므로, 앱 진입을 위젯 최신화 기회로 쓴다
+                // (위젯 중심 앱 — 낮 동안의 일정 변경이 자정까지 위젯에 안 보이는 공백 보완).
+                WidgetCenter.shared.reloadAllTimelines()
             }
+        }
+        // 앱 실행 중 애플 캘린더 DB가 바뀌면(다른 앱/동기화 포함) 화면과 위젯을 함께 갱신.
+        .onReceive(NotificationCenter.default.publisher(for: .EKEventStoreChanged)) { _ in
+            store?.reload()
+            WidgetCenter.shared.reloadAllTimelines()
         }
         .onOpenURL { url in
             handleDeepLink(url)
