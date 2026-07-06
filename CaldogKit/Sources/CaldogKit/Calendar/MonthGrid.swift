@@ -60,6 +60,29 @@ public struct MonthGrid: Equatable, Sendable {
         return MonthGrid(monthStart: monthStart, weeks: weeks)
     }
 
+    /// 기준 날짜가 속한 주부터 `weekCount`주(7×N칸)를 만드는 롤링 그리드(3주 위젯용).
+    ///
+    /// 월 개념이 없으므로 모든 칸은 `isInMonth == true`이고, `monthStart`는 기준 날짜의
+    /// 자정이다(월 그리드의 "1일" 의미와 다름 — 제목 등은 호출부가 기간으로 표현).
+    public static func makeWeeks(containing date: Date, weekCount: Int, calendar: Calendar, today: Date) -> MonthGrid {
+        let anchor = calendar.startOfDay(for: date)
+        let weekday = calendar.component(.weekday, from: anchor) // 1...7
+        let leading = (weekday - calendar.firstWeekday + 7) % 7
+        let gridStart = calendar.date(byAdding: .day, value: -leading, to: anchor) ?? anchor
+
+        let total = max(1, weekCount) * 7
+        var days: [Day] = []
+        days.reserveCapacity(total)
+        for offset in 0..<total {
+            let dayDate = calendar.date(byAdding: .day, value: offset, to: gridStart) ?? gridStart
+            days.append(Day(date: dayDate, isInMonth: true,
+                            isToday: calendar.isDate(dayDate, inSameDayAs: today)))
+        }
+
+        let weeks = stride(from: 0, to: total, by: 7).map { Array(days[$0..<$0 + 7]) }
+        return MonthGrid(monthStart: anchor, weeks: weeks)
+    }
+
     /// 전달된 달력 기준 요일 머리글(예: 일, 월, ...). `firstWeekday`부터 정렬.
     public static func weekdaySymbols(calendar: Calendar) -> [String] {
         let symbols = calendar.shortWeekdaySymbols // index 0 = Sunday

@@ -11,6 +11,26 @@ struct MonthGridTests {
         #expect(grid.allDays.count == 42)
     }
 
+    @Test func rollingWeeksStartOnFirstWeekdayAndContainAnchor() {
+        let cal = Fixtures.calendar(firstWeekday: 1)
+        let anchor = Fixtures.date(cal, 2026, 7, 3) // 금요일
+        let grid = MonthGrid.makeWeeks(containing: anchor, weekCount: 3, calendar: cal, today: anchor)
+        #expect(grid.weeks.count == 3)
+        #expect(grid.allDays.count == 21)
+        #expect(cal.component(.weekday, from: grid.weeks[0][0].date) == 1)   // 일요일 시작
+        #expect(grid.weeks[0].contains { cal.isDate($0.date, inSameDayAs: anchor) })
+        #expect(grid.allDays.allSatisfy { $0.isInMonth })
+        #expect(grid.allDays.filter { $0.isToday }.count == 1)
+    }
+
+    @Test func rollingWeeksIntervalCoversAllCells() {
+        let cal = Fixtures.calendar(firstWeekday: 2)
+        let anchor = Fixtures.date(cal, 2026, 7, 3)
+        let grid = MonthGrid.makeWeeks(containing: anchor, weekCount: 3, calendar: cal, today: anchor)
+        #expect(cal.component(.weekday, from: grid.weeks[0][0].date) == 2)   // 월요일 시작
+        #expect(grid.dateInterval.contains(grid.allDays.last!.date))
+    }
+
     @Test func monthStartIsFirstOfMonth() {
         let cal = Fixtures.calendar()
         let grid = MonthGrid.make(for: Fixtures.date(cal, 2026, 6, 15), calendar: cal, today: Fixtures.date(cal, 2026, 6, 1))
