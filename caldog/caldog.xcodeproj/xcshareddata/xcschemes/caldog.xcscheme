@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1600"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Re-sign widget for simulator (AppIntents/linkd)"
+               scriptText = "# iOS 26 시뮬레이터의 linkd는 Team ID 없는(adhoc) 위젯 익스텐션을 거부해&#10;# 위젯 구성(AppIntents) 값이 항상 기본값으로 디코드된다. Xcode는 시뮬레이터&#10;# 빌드를 무조건 adhoc 서명하므로 빌드가 끝난 뒤 익스텐션만 실서명한다.&#10;if [ &quot;${PLATFORM_NAME}&quot; = &quot;iphonesimulator&quot; ]; then&#10;  codesign --force --sign &quot;Apple Development: Sijun Yang (P9U2GH2R42)&quot; --preserve-metadata=entitlements,identifier,flags &quot;${CODESIGNING_FOLDER_PATH}/PlugIns/CaldogWidget.appex&quot;&#10;fi&#10;"
+               shellToInvoke = "/bin/sh">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "EDCF3DBE2FE9743500B6AD67"
+                     BuildableName = "caldog.app"
+                     BlueprintName = "caldog"
+                     ReferencedContainer = "container:caldog.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "EDCF3DBE2FE9743500B6AD67"
+               BuildableName = "caldog.app"
+               BlueprintName = "caldog"
+               ReferencedContainer = "container:caldog.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      shouldAutocreateTestPlan = "YES">
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "EDCF3DBE2FE9743500B6AD67"
+            BuildableName = "caldog.app"
+            BlueprintName = "caldog"
+            ReferencedContainer = "container:caldog.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "EDCF3DBE2FE9743500B6AD67"
+            BuildableName = "caldog.app"
+            BlueprintName = "caldog"
+            ReferencedContainer = "container:caldog.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>
