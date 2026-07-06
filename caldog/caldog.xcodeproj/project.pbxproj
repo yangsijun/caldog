@@ -55,6 +55,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				caldog_icon.icon,
+				WidgetIntents.swift,
 			);
 			target = BB589CF60CF0EE8D7F97E2F7 /* CaldogWidget */;
 		};
